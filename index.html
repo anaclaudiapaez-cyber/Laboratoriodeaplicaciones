@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratorio de Aplicaciones de IA — Tablero colaborativo</title>
+<style>
+:root{--navy:#12345A;--cream:#F7F3EA;--mint:#CFE3E2;--teal:#4FA6A1;--ink:#243447;--white:#fff;--line:#d6e0e7}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--cream);color:var(--ink);line-height:1.45}
+header{background:var(--navy);color:white;padding:28px clamp(18px,4vw,52px)}
+.kicker{color:var(--mint);font-size:.8rem;font-weight:bold;letter-spacing:.12em;text-transform:uppercase}
+h1{margin:.35rem 0;font-size:clamp(1.7rem,4vw,2.7rem);line-height:1.1}
+header p{max-width:850px;margin:.6rem 0 0}
+main{max-width:1500px;margin:auto;padding:22px clamp(12px,3vw,36px) 42px}
+.instructions{background:white;border-left:5px solid var(--teal);border-radius:12px;padding:16px 18px;margin-bottom:20px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 22px}
+button{border:0;border-radius:9px;padding:10px 14px;background:var(--navy);color:white;font-weight:bold;cursor:pointer}
+button.secondary{background:var(--mint);color:var(--navy)}button:hover{filter:brightness(.96)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.team{background:white;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 3px 10px #12345a0b}
+.team-head{background:var(--mint);padding:13px 15px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.team-head h2{margin:0;color:var(--navy);font-size:1.05rem}
+.tag{font-size:.75rem;background:white;border-radius:30px;padding:4px 8px;white-space:nowrap}
+.content{padding:15px}
+.scenario{font-size:.9rem;background:#f7fafb;border-radius:9px;padding:11px;margin-bottom:13px}
+label{font-weight:bold;font-size:.87rem;display:block;margin:12px 0 5px}
+textarea,input{width:100%;font:inherit;border:1px solid #bdcbd5;border-radius:8px;padding:9px;background:white;color:var(--ink)}
+textarea{min-height:70px;resize:vertical}
+textarea:focus,input:focus{outline:2px solid var(--teal);border-color:transparent}
+.prompt{font-size:.86rem;background:#fff8e8;border:1px solid #f0dfb3;border-radius:8px;padding:10px;margin-top:12px}
+footer{color:#5d6b78;font-size:.83rem;margin-top:22px}
+@media(max-width:1000px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.team-head{align-items:flex-start}}
+@media print{.toolbar,footer button{display:none}body{background:white}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.team{break-inside:avoid;box-shadow:none}textarea{min-height:45px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Laboratorio de Aplicaciones de IA · Trabajo en equipo</div>
+  <h1>¿Cómo enseñar con IA en aulas diversas?</h1>
+  <p>Tablero de trabajo para la clase virtual. Cada equipo analiza su escenario, diseña una propuesta y registra decisiones pedagógicas, accesibilidad y revisión crítica.</p>
+</header>
+<main>
+  <section class="instructions">
+    <strong>Consigna para los equipos</strong>
+    <ol>
+      <li>Lean el escenario asignado.</li>
+      <li>Definan un objetivo de aprendizaje y una actividad concreta.</li>
+      <li>Decidan qué uso de IA aporta valor. No es obligatorio que el estudiantado la utilice directamente.</li>
+      <li>Anticipen barreras de acceso y definan una alternativa si falla la tecnología.</li>
+      <li>Revisen críticamente la respuesta de IA y preparen una presentación de 2 minutos.</li>
+    </ol>
+    <strong>Roles sugeridos:</strong> coordinación · interacción con IA · revisión crítica · relatoría.
+  </section>
+  <div class="toolbar">
+    <button onclick="copyAll()">Copiar todas las producciones</button>
+    <button class="secondary" onclick="downloadText()">Descargar respuestas (.txt)</button>
+    <button class="secondary" onclick="window.print()">Imprimir tablero</button>
+    <button class="secondary" onclick="clearBoard()">Borrar respuestas de este navegador</button>
+  </div>
+  <div class="grid" id="board"></div>
+  <footer>
+    <p><strong>Nota para quien coordina:</strong> este archivo es una plantilla interactiva. Las respuestas se mantienen en el navegador donde se completa el tablero; para edición simultánea entre participantes, copie las secciones a un documento compartido o tablero colaborativo (por ejemplo, Padlet, Miro o Google Slides).</p>
+    <p>Accesibilidad: no compartan datos personales del estudiantado con herramientas de IA. Consulten qué apoyos necesita cada persona y ofrezcan formatos alternativos.</p>
+  </footer>
+</main>
+<script>
+const teams = [
+ {n:1,card:19,title:"Sin tecnología + discapacidad visual",scenario:"Ciclo básico; sin dispositivos ni conexión; sin conocimientos previos de IA; un estudiante con discapacidad visual.",prompt:"Diseñá una actividad presencial sin dispositivos sobre [tema]. La docente puede preparar materiales con IA antes de la clase. Incluí formatos accesibles para un estudiante con discapacidad visual, objetivo, materiales y evaluación."},
+ {n:2,card:10,title:"Tablets + conexión inestable",scenario:"Ciclo básico; conocimientos iniciales nulos; tablets escolares y conexión inestable; un estudiante con discapacidad motriz.",prompt:"Diseñá una actividad que pueda continuar sin internet, con tablets compartidas y alternativas de interacción para distintas necesidades motoras. Indicá qué preparar previamente y cómo evaluar."},
+ {n:3,card:9,title:"Experiencia básica + apoyos",scenario:"Ciclo orientado; estudiantes familiarizados con IA; dispositivos y conexión estable; un estudiante con discapacidad intelectual leve.",prompt:"Diseñá una actividad de ciclo orientado que use IA con propósito curricular. Secuenciá las consignas, incluí ejemplos y diversas formas de demostrar el aprendizaje sin reducir automáticamente la exigencia cognitiva."},
+ {n:4,card:11,title:"Nivel avanzado + análisis crítico",scenario:"Nivel superior; conocimientos avanzados de IA; dispositivos personales y excelente conectividad; sin discapacidades reportadas.",prompt:"Diseñá una actividad de análisis crítico con dos prompts para un mismo problema. Incluí criterios para evaluar precisión, sesgos, omisiones, fuentes y pertinencia pedagógica."},
+ {n:5,card:4,title:"Conexión sí, dispositivos no",scenario:"Ciclo básico; sin manejo de tecnologías; conexión fluida, pero sin dispositivos disponibles; sin discapacidades reportadas.",prompt:"Diseñá una actividad presencial para un grupo sin dispositivos propios. La docente puede mostrar IA desde un único equipo y compartir el resultado. Incluí participación de todo el grupo y evaluación."},
+ {n:6,card:14,title:"Conexión inestable + discapacidad auditiva",scenario:"Nivel superior; buen manejo de IA; hay dispositivos, pero la conexión es inestable; una estudiante con discapacidad auditiva.",prompt:"Diseñá una actividad para nivel superior que aproveche la experiencia en IA y funcione sin conexión estable. Incluí instrucciones escritas, alternativas a la información exclusivamente oral y criterios de revisión crítica."}
+];
+const fields=[["group","Equipo / integrantes"],["objective","Objetivo de aprendizaje"],["activity","Actividad propuesta"],["ai","¿Para qué se usará la IA?"],["access","Accesibilidad y alternativas"],["review","¿Qué revisamos de la respuesta?"]];
+const board=document.getElementById("board");
+teams.forEach(t=>{
+ const card=document.createElement("section");card.className="team";
+ card.innerHTML=`<div class="team-head"><h2>Equipo ${t.n} · Tarjetón ${t.card}</h2><span class="tag">Escenario ${t.n}</span></div><div class="content"><div class="scenario"><strong>${t.title}</strong><br>${t.scenario}</div>
+ ${fields.map(([id,label])=>`<label for="t${t.n}_${id}">${label}</label>${id==="group"?`<input id="t${t.n}_${id}" data-team="${t.n}" data-label="${label}" placeholder="Nombres o roles del equipo">`:`<textarea id="t${t.n}_${id}" data-team="${t.n}" data-label="${label}" placeholder="Escriban aquí su respuesta..."></textarea>`}`).join("")}
+ <div class="prompt"><strong>Prompt de partida para adaptar</strong><p>${t.prompt}</p><button class="secondary" onclick="copyPrompt(${t.n})">Copiar prompt</button></div></div>`;
+ board.appendChild(card);
+});
+function values(){return [...document.querySelectorAll("[data-team]")]}
+function teamText(n){return values().filter(e=>e.dataset.team==n).map(e=>e.dataset.label+":\n"+e.value).join("\n\n")}
+function copyPrompt(n){const t=teams.find(x=>x.n===n);navigator.clipboard.writeText(t.prompt).then(()=>alert("Prompt copiado."),()=>alert(t.prompt))}
+function copyAll(){const txt=teams.map(t=>"EQUIPO "+t.n+" — TARJETÓN "+t.card+"\n"+teamText(t.n)).join("\n\n====================\n\n");navigator.clipboard.writeText(txt).then(()=>alert("Producciones copiadas."),()=>window.prompt("Copiá el texto:",txt))}
+function downloadText(){const txt=teams.map(t=>"EQUIPO "+t.n+" — TARJETÓN "+t.card+"\n"+teamText(t.n)).join("\n\n====================\n\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/plain;charset=utf-8"}));a.download="producciones_laboratorio_IA.txt";a.click();URL.revokeObjectURL(a.href)}
+function clearBoard(){if(confirm("¿Borrar todas las respuestas escritas en este tablero?"))values().forEach(e=>e.value="")}
+</script>
+</body>
+</html>
