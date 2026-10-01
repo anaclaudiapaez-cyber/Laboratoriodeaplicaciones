@@ -19,7 +19,7 @@ button.secondary{background:var(--mint);color:var(--navy)}button:hover{filter:br
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 .team{background:white;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 3px 10px #12345a0b}
 .team-head{background:var(--mint);padding:13px 15px;display:flex;justify-content:space-between;gap:8px;align-items:center}
-.team-head h2{margin:0;color:var(--navy);font-size:1.05rem}
+.team-head h2{margin:0;color:var(--navy);font-size:1.05rem}.team-head .card-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.team-head button{font-size:.78rem;padding:7px 10px}.team.is-hidden{display:none}.team.is-focused{grid-column:1 / -1;max-width:100%;width:100%}
 .tag{font-size:.75rem;background:white;border-radius:30px;padding:4px 8px;white-space:nowrap}
 .content{padding:15px}
 .scenario{font-size:.9rem;background:#f7fafb;border-radius:9px;padding:11px;margin-bottom:13px}
@@ -56,7 +56,8 @@ footer{color:#5d6b78;font-size:.83rem;margin-top:22px}
     <button onclick="copyAll()">Copiar todas las producciones</button>
     <button class="secondary" onclick="downloadText()">Descargar respuestas (.txt)</button>
     <button class="secondary" onclick="window.print()">Imprimir tablero</button>
-    <button class="secondary" onclick="clearBoard()">Borrar respuestas de este navegador</button>
+    <button class="secondary" onclick="showAllCards()">Mostrar todos los tarjetones</button>
+  <button class="secondary" onclick="clearBoard()">Borrar respuestas de este navegador</button>
   </div>
   <div class="grid" id="board"></div>
   <footer>
@@ -77,11 +78,23 @@ const fields=[["group","Equipo / integrantes"],["objective","Objetivo de aprendi
 const board=document.getElementById("board");
 teams.forEach(t=>{
  const card=document.createElement("section");card.className="team";
- card.innerHTML=`<div class="team-head"><h2>Equipo ${t.n} · Tarjetón ${t.card}</h2><span class="tag">Escenario ${t.n}</span></div><div class="content"><div class="scenario"><strong>${t.title}</strong><br>${t.scenario}</div>
+ card.innerHTML=`<div class="team-head"><h2>Equipo ${t.n} · Tarjetón ${t.card}</h2><div class="card-actions"><span class="tag">Escenario ${t.n}</span><button type="button" class="secondary" onclick="showOnlyCard(${t.n})">Ver solo este tarjetón</button></div></div><div class="content"><div class="scenario"><strong>${t.title}</strong><br>${t.scenario}</div>
  ${fields.map(([id,label])=>`<label for="t${t.n}_${id}">${label}</label>${id==="group"?`<input id="t${t.n}_${id}" data-team="${t.n}" data-label="${label}" placeholder="Nombres o roles del equipo">`:`<textarea id="t${t.n}_${id}" data-team="${t.n}" data-label="${label}" placeholder="Escriban aquí su respuesta..."></textarea>`}`).join("")}
  <div class="prompt"><strong>Prompt de partida para adaptar</strong><p>${t.prompt}</p><button class="secondary" onclick="copyPrompt(${t.n})">Copiar prompt</button></div></div>`;
  board.appendChild(card);
 });
+function showOnlyCard(n){
+ document.querySelectorAll(".team").forEach(card=>{
+  const teamInput=card.querySelector("[data-team]");
+  const isSelected=teamInput && Number(teamInput.dataset.team)===Number(n);
+  card.classList.toggle("is-hidden",!isSelected);
+  card.classList.toggle("is-focused",isSelected);
+ });
+ document.getElementById("board").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function showAllCards(){
+ document.querySelectorAll(".team").forEach(card=>card.classList.remove("is-hidden","is-focused"));
+}
 function values(){return [...document.querySelectorAll("[data-team]")]}
 function teamText(n){return values().filter(e=>e.dataset.team==n).map(e=>e.dataset.label+":\n"+e.value).join("\n\n")}
 function copyPrompt(n){const t=teams.find(x=>x.n===n);navigator.clipboard.writeText(t.prompt).then(()=>alert("Prompt copiado."),()=>alert(t.prompt))}
